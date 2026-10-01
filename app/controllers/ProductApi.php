@@ -13,6 +13,15 @@ class ProductApi extends Controller
         $this->db = $this->call->database();
     }
 
+    public function status()
+    {
+        $this->api->require_method('GET');
+        $this->api->respond([
+            'status' => 'ok',
+            'service' => 'LavaLust API',
+        ]);
+    }
+
     public function login()
     {
         $this->api->require_method('POST');

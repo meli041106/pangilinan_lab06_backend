@@ -46,6 +46,7 @@ defined('PREVENT_DIRECT_ACCESS') OR exit('No direct script access allowed');
 
 $router->get('/', 'Welcome::index');
 
+$router->get('/api', 'ProductApi::status');
 $router->post('/api/auth/register', 'ProductApi::register');
 $router->post('/api/auth/login', 'ProductApi::login');
 $router->post('/api/auth/refresh', 'ProductApi::refresh');
