@@ -44,7 +44,7 @@ defined('PREVENT_DIRECT_ACCESS') OR exit('No direct script access allowed');
 | and disable it back when you're done.
 |
 */
-$config['api_helper_enabled'] = FALSE;
+$config['api_helper_enabled'] = TRUE;
 
 /*
 |--------------------------------------------------------------------------
@@ -75,7 +75,15 @@ $config['refresh_token_expiration'] = 604800;
 | Used for Securing endpoint
 |
 */
-$config['jwt_secret'] = 'cbTsnJDxCodakDxh4M3qd5Sn3Kd2cYCDp4MEu0DAPxx';
+$app_key = getenv('APP_KEY') ?: '';
+$derived_jwt_secret = strlen($app_key) >= 32
+	? hash_hmac('sha256', 'lavalust-api-jwt', $app_key)
+	: '';
+$derived_refresh_key = strlen($app_key) >= 32
+	? hash_hmac('sha256', 'lavalust-api-refresh', $app_key)
+	: '';
+
+$config['jwt_secret'] = getenv('API_JWT_SECRET') ?: $derived_jwt_secret;
 
 /*
 |--------------------------------------------------------------------------
@@ -85,7 +93,7 @@ $config['jwt_secret'] = 'cbTsnJDxCodakDxh4M3qd5Sn3Kd2cYCDp4MEu0DAPxx';
 | Used for Securing endpoint
 |
 */
-$config['refresh_token_key'] = '0bNvxjPFJ6dhi1Ttf7AStp95zUcd1iy94mjblklwfPs';
+$config['refresh_token_key'] = getenv('API_REFRESH_TOKEN_KEY') ?: $derived_refresh_key;
 
 /*
 |--------------------------------------------------------------------------
@@ -96,7 +104,23 @@ $config['refresh_token_key'] = '0bNvxjPFJ6dhi1Ttf7AStp95zUcd1iy94mjblklwfPs';
 | already deployed.
 |
 */
-$config['allow_origin'] = '*';
+$frontend_origins = array_values(array_filter(array_map(
+	'trim',
+	explode(',', getenv('FRONTEND_ORIGIN') ?: '*')
+)));
+
+if (count($frontend_origins) === 1) {
+	$origin_host = parse_url($frontend_origins[0], PHP_URL_HOST);
+	if ($origin_host === 'localhost') {
+		$frontend_origins[] = preg_replace('#://localhost(?=[:/]|$)#', '://127.0.0.1', $frontend_origins[0]);
+	} elseif ($origin_host === '127.0.0.1') {
+		$frontend_origins[] = preg_replace('#://127\.0\.0\.1(?=[:/]|$)#', '://localhost', $frontend_origins[0]);
+	}
+}
+
+$config['allow_origin'] = count($frontend_origins) === 1
+	? $frontend_origins[0]
+	: $frontend_origins;
 
 /*
 |--------------------------------------------------------------------------
