@@ -118,6 +118,11 @@ if (count($frontend_origins) === 1) {
 	}
 }
 
+$render_frontend_origin = 'https://pangilinan-lab06-frontend.onrender.com';
+if (!in_array('*', $frontend_origins, true) && !in_array($render_frontend_origin, $frontend_origins, true)) {
+	$frontend_origins[] = $render_frontend_origin;
+}
+
 $config['allow_origin'] = count($frontend_origins) === 1
 	? $frontend_origins[0]
 	: $frontend_origins;
